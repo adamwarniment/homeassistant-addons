@@ -29,6 +29,12 @@ def get_image_url(args):
     return f"{os.path.basename(selected_file)}"
 
 def get_image(args, image_url) -> Tuple[Optional[BytesIO], Optional[str]]:
+    # folder path with fallback
+    if args.media_folder_path:
+        folder_path = media_folder_path
+    else:
+        folder_path = '/media/frame'
+
     full_path = os.path.join(folder_path, image_url)
     if not os.path.exists(full_path):
         logging.error(f"File not found: {full_path}")
