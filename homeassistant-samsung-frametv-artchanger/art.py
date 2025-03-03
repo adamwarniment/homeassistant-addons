@@ -26,15 +26,15 @@ parser.add_argument('--media-folder', action='store_true', help='Use images from
 parser.add_argument('--media-folder-path', action='store_true', help='File path to look for photos')
 parser.add_argument('--debugimage', action='store_true', help='Save downloaded and resized images for inspection')
 #parser.add_argument('--filter', action="store", type=str, default="none", help='photo filter to apply')
-parser.add_argument('--matte', action="store", type=str, default="none", help='matte to apply')
-parser.add_argument('--matte-color', action="store", type=str, default="black", help='matte color to apply')
+parser.add_argument('--matte', action="store", type=str, help='matte to apply')
+parser.add_argument('--matte-color', action="store", type=str, help='matte color to apply')
 parser.add_argument('--log-path', action="store", type=str, help='Where file should logs be written to?')
 
 args = parser.parse_args()
 
 # Set the path to the file that will store the list of uploaded filenames
 # set upload_list_path as arg with fallback of uploaded_files.json
-upload_list_path = args.log_path if args.log_path else 'uploaded_files.json'
+upload_list_path = args.log_path
 
 # Load the list of uploaded filenames from the file
 if os.path.isfile(upload_list_path):
