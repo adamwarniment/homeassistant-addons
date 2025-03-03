@@ -32,6 +32,10 @@ parser.add_argument('--log-path', action="store", type=str, help='Where file sho
 
 args = parser.parse_args()
 
+
+# Increase debug level
+logging.basicConfig(level=logging.INFO)
+
 # log the current date time
 logging.info(f"Starting at {datetime.datetime.now()}")
 logging.info(f"Arguments: {args}")
@@ -49,9 +53,6 @@ if os.path.isfile(upload_list_path):
         uploaded_files = json.load(f)
 else:
     uploaded_files = []
-
-# Increase debug level
-logging.basicConfig(level=logging.INFO)
 
 sources = []
 if args.bing_wallpapers:
