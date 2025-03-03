@@ -28,7 +28,7 @@ parser.add_argument('--debugimage', action='store_true', help='Save downloaded a
 #parser.add_argument('--filter', action="store", type=str, default="none", help='photo filter to apply')
 parser.add_argument('--matte', action="store", type=str, default="none", help='matte to apply')
 parser.add_argument('--matte-color', action="store", type=str, default="black", help='matte color to apply')
-parser.add_argument('--log-path', action="store", type=str, default="black", help='Where file should logs be written to?')
+parser.add_argument('--log-path', action="store", type=str, help='Where file should logs be written to?')
 
 args = parser.parse_args()
 
