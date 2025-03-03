@@ -68,7 +68,7 @@ else:
     matte_var = matte
 
 # get filter_type
-filter_type = args.filter
+#filter_type = args.filter
 
 utils = Utils(args.tvip, uploaded_files)
 
