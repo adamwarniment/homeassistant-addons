@@ -22,20 +22,14 @@ fi
 if bashio::config.true 'same_image'; then
     PARAMS="${PARAMS} --same-image"
 fi
-if bashio::config.true 'media_folder_path'; then
-    PARAMS="${PARAMS} --media-folder-path"
-fi
-if bashio::config.true 'matte'; then
-    PARAMS="${PARAMS} --matte"
-fi
-if bashio::config.true 'matte_color'; then
-    PARAMS="${PARAMS} --matte-color"
-fi
-if bashio::config.true 'log_path'; then
-    PARAMS="${PARAMS} --log-path"
-fi
 
-python3 art.py --tvip ${TVIP} ${PARAMS}
+#FILTER=$(bashio::config 'filter')
+MATTE=$(bashio::config 'matte')
+MATTE_COLOR=$(bashio::config 'matte_color')
+MEDIA_FOLDER_PATH=$(bashio::config 'media_folder_path')
+LOG_PATH=$(bashio::config 'log_path')
+
+python3 art.py --tvip ${TVIP} ${PARAMS} --matte ${MATTE} --matte-color ${MATTE_COLOR} --media-folder-path ${MEDIA_FOLDER_PATH} --log-path ${LOG_PATH}
 
 echo "done, closing now!"
 kill -s SIGHUP 1
