@@ -106,7 +106,11 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, 
                 'source': source_name
             })
             # Save the list of uploaded filenames to the file
+            # log the text that will be written to upload_list_path
+            logging.info(f'Writing uploaded files to {upload_list_path}')
             with open(upload_list_path, 'w') as f:
+                # log the json dump
+                logging.info(f'uploaded files {uploaded_files}')
                 json.dump(uploaded_files, f)
         except Exception as e:
             logging.error(f'There was an error uploading the image to TV at {tv_ip}: ' + str(e))
