@@ -103,7 +103,9 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, 
                 'file': image_url,
                 'remote_filename': remote_filename,
                 'tv_ip': tv_ip if len(tvip) > 1 else None,
-                'source': source_name
+                'source': source_name,
+                'matte': matte_var,
+                'timestamp': datetime.datetime.now().isoformat()
             })
             # Save the list of uploaded filenames to the file
             # log the text that will be written to upload_list_path
