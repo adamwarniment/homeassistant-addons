@@ -23,7 +23,6 @@ if bashio::config.true 'same_image'; then
     PARAMS="${PARAMS} --same-image"
 fi
 
-#FILTER=$(bashio::config 'filter')
 MATTE=$(bashio::config 'matte')
 MATTE_COLOR=$(bashio::config 'matte_color')
 MEDIA_FOLDER_PATH=$(bashio::config 'media_folder_path')
