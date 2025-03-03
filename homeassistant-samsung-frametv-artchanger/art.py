@@ -22,12 +22,16 @@ parser.add_argument('--google-art', action='store_true', help='Download and uplo
 parser.add_argument('--download-high-res', action='store_true', help='Download high resolution image using dezoomify-rs')
 parser.add_argument('--bing-wallpapers', action='store_true', help='Download and upload image from Bing Wallpapers')
 parser.add_argument('--media-folder', action='store_true', help='Use images from the local media folder')
+parser.add_argument('--media-folder-path', action='store_true', help='File path to look for photos')
 parser.add_argument('--debugimage', action='store_true', help='Save downloaded and resized images for inspection')
+parser.add_argument('--filter', action="store", type=str, default="none", help='photo filter to apply')
+parser.add_argument('--matte', action="store", type=str, default="none", help='matte to apply')
+parser.add_argument('--matte-color', action="store", type=str, default="black", help='matte color to apply')
 
 args = parser.parse_args()
 
 # Set the path to the file that will store the list of uploaded filenames
-upload_list_path = 'uploaded_files.json'
+upload_list_path = '/homeassistant/frame/uploaded_files.json'
 
 # Load the list of uploaded filenames from the file
 if os.path.isfile(upload_list_path):
@@ -54,9 +58,21 @@ if not sources:
 tvip = args.tvip.split(',') if args.tvip else []
 use_same_image = args.same_image
 
+# get matte type
+matte = args.matte
+matte_color = args.matte_color
+# Set the matte and matte color
+if matte != 'none':
+    matte_var = f"{matte}_{matte_color}"
+else:
+    matte_var = matte
+
+# get filter_type
+filter_type = args.filter
+
 utils = Utils(args.tvip, uploaded_files)
 
-def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, remote_filename: str, source_name: str):
+def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, remote_filename: str, source_name: str, matte_var: str, filter_type: str):
     tv = SamsungTVWS(tv_ip)
     
     # Check if TV supports art mode
@@ -67,9 +83,12 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, 
     if remote_filename is None:
         try:
             logging.info(f'Uploading image to TV at {tv_ip}')
-            remote_filename = tv.art().upload(image_data.getvalue(), file_type=file_type, matte="none")
+            remote_filename = tv.art().upload(image_data.getvalue(), file_type=file_type, matte=matte_var)
             if remote_filename is None:
                 raise Exception('No remote filename returned')
+
+            #set filter
+            await tv.set_photo_filter(remote_filename, filter_type)
 
             tv.art().select_image(remote_filename, show=True)
             logging.info(f'Image uploaded and selected on TV at {tv_ip}')
@@ -124,11 +143,11 @@ if tvip:
     if len(tvip) > 1 and use_same_image:
         image_data, file_type, image_url, remote_filename, source_name = get_image_for_tv(None)
         for tv_ip in tvip:
-            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name)
+            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var, filter_type)
     else:
         for tv_ip in tvip:
             image_data, file_type, image_url, remote_filename, source_name = get_image_for_tv(tv_ip)
-            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name)
+            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var, filter_type)
 else:
     logging.error('No TV IP addresses specified. Please use --tvip')
     sys.exit(1)
