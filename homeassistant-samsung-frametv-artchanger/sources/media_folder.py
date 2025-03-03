@@ -17,7 +17,7 @@ def get_media_folder_images(folder_path: str) -> List[str]:
 def get_image_url(args):
     # folder path with fallback
     if args.media_folder_path:
-        folder_path = media_folder_path
+        folder_path = args.media_folder_path
     else:
         folder_path = '/media/frame'
         
@@ -31,7 +31,7 @@ def get_image_url(args):
 def get_image(args, image_url) -> Tuple[Optional[BytesIO], Optional[str]]:
     # folder path with fallback
     if args.media_folder_path:
-        folder_path = media_folder_path
+        folder_path = args.media_folder_path
     else:
         folder_path = '/media/frame'
 
