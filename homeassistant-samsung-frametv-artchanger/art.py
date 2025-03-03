@@ -5,6 +5,7 @@ import json
 import argparse
 from io import BytesIO
 import random
+import datetime
 
 sys.path.append('../')
 
@@ -27,11 +28,13 @@ parser.add_argument('--debugimage', action='store_true', help='Save downloaded a
 #parser.add_argument('--filter', action="store", type=str, default="none", help='photo filter to apply')
 parser.add_argument('--matte', action="store", type=str, default="none", help='matte to apply')
 parser.add_argument('--matte-color', action="store", type=str, default="black", help='matte color to apply')
+parser.add_argument('--log-path', action="store", type=str, default="black", help='Where file should logs be written to?')
 
 args = parser.parse_args()
 
 # Set the path to the file that will store the list of uploaded filenames
-upload_list_path = '/homeassistant/frame/uploaded_files.json'
+# set upload_list_path as arg with fallback of uploaded_files.json
+upload_list_path = args.log_path if args.log_path else 'uploaded_files.json'
 
 # Load the list of uploaded filenames from the file
 if os.path.isfile(upload_list_path):
@@ -42,6 +45,9 @@ else:
 
 # Increase debug level
 logging.basicConfig(level=logging.INFO)
+
+# log the current date time
+logging.info(f"Starting at {datetime.datetime.now()}")
 
 sources = []
 if args.bing_wallpapers:
