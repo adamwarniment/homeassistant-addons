@@ -24,7 +24,7 @@ parser.add_argument('--bing-wallpapers', action='store_true', help='Download and
 parser.add_argument('--media-folder', action='store_true', help='Use images from the local media folder')
 parser.add_argument('--media-folder-path', action='store_true', help='File path to look for photos')
 parser.add_argument('--debugimage', action='store_true', help='Save downloaded and resized images for inspection')
-parser.add_argument('--filter', action="store", type=str, default="none", help='photo filter to apply')
+#parser.add_argument('--filter', action="store", type=str, default="none", help='photo filter to apply')
 parser.add_argument('--matte', action="store", type=str, default="none", help='matte to apply')
 parser.add_argument('--matte-color', action="store", type=str, default="black", help='matte color to apply')
 
@@ -72,7 +72,7 @@ filter_type = args.filter
 
 utils = Utils(args.tvip, uploaded_files)
 
-def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, remote_filename: str, source_name: str, matte_var: str, filter_type: str):
+def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, remote_filename: str, source_name: str, matte_var: str):
     tv = SamsungTVWS(tv_ip)
     
     # Check if TV supports art mode
@@ -88,7 +88,7 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, 
                 raise Exception('No remote filename returned')
 
             #set filter
-            await tv.set_photo_filter(remote_filename, filter_type)
+            #await tv.set_photo_filter(remote_filename, filter_type)
 
             tv.art().select_image(remote_filename, show=True)
             logging.info(f'Image uploaded and selected on TV at {tv_ip}')
@@ -143,11 +143,11 @@ if tvip:
     if len(tvip) > 1 and use_same_image:
         image_data, file_type, image_url, remote_filename, source_name = get_image_for_tv(None)
         for tv_ip in tvip:
-            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var, filter_type)
+            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var)
     else:
         for tv_ip in tvip:
             image_data, file_type, image_url, remote_filename, source_name = get_image_for_tv(tv_ip)
-            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var, filter_type)
+            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var)
 else:
     logging.error('No TV IP addresses specified. Please use --tvip')
     sys.exit(1)
