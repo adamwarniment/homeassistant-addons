@@ -22,6 +22,18 @@ fi
 if bashio::config.true 'same_image'; then
     PARAMS="${PARAMS} --same-image"
 fi
+if bashio::config.true 'media_folder_path'; then
+    PARAMS="${PARAMS} --media-folder-path"
+fi
+if bashio::config.true 'matte'; then
+    PARAMS="${PARAMS} --matte"
+fi
+if bashio::config.true 'matte_color'; then
+    PARAMS="${PARAMS} --matte-color"
+fi
+if bashio::config.true 'log_path'; then
+    PARAMS="${PARAMS} --log-path"
+fi
 
 python3 art.py --tvip ${TVIP} ${PARAMS}
 
