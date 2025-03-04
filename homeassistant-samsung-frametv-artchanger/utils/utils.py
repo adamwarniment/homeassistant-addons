@@ -1,7 +1,7 @@
 from io import BytesIO
 from PIL import Image
 from typing import List, Dict, Optional
-import pyheif
+import pillow_heif
 
 class Utils:
     def __init__(self, tvips: str, uploaded_files: List[Dict[str, str]]):
@@ -13,22 +13,40 @@ class Utils:
     def resize_and_crop_image(image_data, target_width=3840, target_height=2160):
         # Check if the input is a BytesIO object or a file path
         if isinstance(image_data, BytesIO):
-          image_data.seek(0)
-          
-          try:
-            #Try open as standard image format
-            img = Image.open(image_data)
-          except Exception as e:
-            #Try open as HEIC
-            image_data.seek(0) #reset the stream position for pyheif
-            heif_file = pyheif.read(image_data)
-            img = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data)
+            image_data.seek(0)
+            try:
+                # Try to open as a standard image format
+                img = Image.open(image_data)
+            except Exception:
+                # Try to open as HEIC using pillow_heif
+                image_data.seek(0)  # Reset the stream position
+                try:
+                    heif_file = pillow_heif.read_heif(image_data)
+                    img = Image.frombytes(
+                        heif_file.mode,
+                        heif_file.size,
+                        heif_file.data,
+                        "raw",
+                    )
+                except Exception as e:
+                    raise Exception(f"Failed to open image as either standard or HEIC format: {e}")
+
         else:
-          try:
-            img = Image.open(image_data)
-          except Exception as e:
-            heif_file = pyheif.read(image_data)
-            img = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data)
+            try:
+                # Try to open as a standard image format
+                img = Image.open(image_data)
+            except Exception:
+                # Try to open as HEIC using pillow_heif
+                try:
+                    heif_file = pillow_heif.read_heif(image_data)
+                    img = Image.frombytes(
+                        heif_file.mode,
+                        heif_file.size,
+                        heif_file.data,
+                        "raw",
+                    )
+                except Exception as e:
+                     raise Exception(f"Failed to open image as either standard or HEIC format: {e}")
 
         # Calculate the aspect ratio
         img_ratio = img.width / img.height

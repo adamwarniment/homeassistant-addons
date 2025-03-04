@@ -22,7 +22,7 @@ RUN if [ "$(uname -m)" = "x86_64" ]; then \
 
 # Install Python dependencies
 RUN \
-    pip3 install git+https://github.com/NickWaterton/samsung-tv-ws-api.git pillow pyheif
+    pip3 install git+https://github.com/NickWaterton/samsung-tv-ws-api.git pillow pillow_heif
 
 # Copy data for add-on
 COPY run.sh /
