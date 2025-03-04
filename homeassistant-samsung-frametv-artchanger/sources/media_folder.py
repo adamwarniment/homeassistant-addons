@@ -12,7 +12,7 @@ def get_media_folder_images(folder_path: str) -> List[str]:
     logging.info(f"Files in {folder_path}:")
     for file in files:
         logging.info(f"  - {file}")
-    return [os.path.join(root, f) for root, dirs, files in os.walk(folder_path) for f in files if f.endswith(('.jpg', '.png', '.heic'))]
+    return [os.path.join(root, f) for root, dirs, files in os.walk(folder_path) for f in files if f.endswith(('.jpg', '.png', '.heic', '.HEIC'))]
 
 def get_image_url(args):
     # folder path with fallback
