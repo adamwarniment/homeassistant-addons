@@ -65,8 +65,8 @@ def get_image_url(args):
     if not files:
         logging.info('No images found in the media folder.')
         return None
-    for file in files:
-        logging.info(f"Image  - {file}")
+    #for file in files:
+    #    logging.info(f"Image  - {file}")
     selected_file = random.choice(files)
     return f"{os.path.basename(selected_file)}"
 
@@ -82,7 +82,7 @@ def get_image(args, image_url) -> Tuple[Optional[BytesIO], Optional[str]]:
         logging.error(f"File not found: {full_path}")
         return None, None
     
-    file_type = 'JPEG' if full_path.endswith('.jpg') else 'PNG'
+    file_type = 'JPEG' if full_path.endswith(('.jpg','jpeg','.JPEG','.JPG')) else 'PNG' if full_path.endswith(('.png','.PNG')) else 'HEIC' if full_path.endswith(('.heic','.heif', '.HEIC', '.HEIF')) else 'unknown'
     with open(full_path, 'rb') as f:
         data = BytesIO(f.read())
     return data, file_type
