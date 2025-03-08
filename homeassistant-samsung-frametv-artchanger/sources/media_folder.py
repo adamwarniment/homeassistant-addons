@@ -10,9 +10,9 @@ from PIL import Image
 def get_media_folder_images(folder_path: str) -> List[str]:
     """Get a list of JPG/PNG/HEIC files in the folder, and search recursively if you want to use subdirectories"""
     files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-    logging.info(f"Files in {folder_path}:")
-    for file in files:
-        logging.info(f"  - {file}")
+    #logging.info(f"Files in {folder_path}:")
+    #for file in files:
+    #    logging.info(f"  - {file}")
     return [os.path.join(root, f) for root, dirs, files in os.walk(folder_path) for f in files if f.endswith(('.jpg', '.jpeg', '.JPG', '.JPEG', '.png', '.PNG', '.heic', '.HEIC'))]
 
 def find_portrait_image_url(media_folder_path, exclusions: List[str] = []) -> Optional[str]:
@@ -26,9 +26,7 @@ def find_portrait_image_url(media_folder_path, exclusions: List[str] = []) -> Op
         folder_path = '/media/frame'
 
     files = get_media_folder_images(folder_path)
-    print(files)
     random.shuffle(files) # Shuffle the list in place
-    print(files)
     if not files:
         logging.info('No images found in the media folder.')
         return None

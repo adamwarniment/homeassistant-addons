@@ -168,3 +168,6 @@ cython_debug/
 #.idea/
 
 dezoomify-rs.exe
+
+# Exlude all test files, including the folder
+homeassistant-samsung-frametv-artchanger/test*
