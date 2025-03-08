@@ -8,7 +8,7 @@ import pillow_heif
 from sources import media_folder
 
 class Utils:
-    def __init__(self, tvips: str, uploaded_files: List[Dict[str, str]], args):
+    def __init__(self, tvips: str, uploaded_files: List[Dict[str, str]]):
         self.tvips = tvips
         self.uploaded_files = uploaded_files
         self.check_tv_ip = len(tvips.split(',')) > 1 if tvips else False #only check the tv_ip if there is more than one tv_ip
