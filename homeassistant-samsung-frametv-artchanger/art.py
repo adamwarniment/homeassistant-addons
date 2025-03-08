@@ -83,7 +83,7 @@ else:
 
 utils = Utils(args.tvip, uploaded_files)
 
-def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, remote_filename: str, source_name: str, matte_var: str):
+def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_urls: List[str], remote_filename: str, source_name: str, matte_var: str):
     tv = SamsungTVWS(tv_ip)
     
     # Check if TV supports art mode
@@ -103,15 +103,16 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_url: str, 
 
             tv.art().select_image(remote_filename, show=True)
             logging.info(f'Image uploaded and selected on TV at {tv_ip}')
-            # Add the filename to the list of uploaded filenames
-            uploaded_files.append({
-                'file': image_url,
-                'remote_filename': remote_filename,
-                'tv_ip': tv_ip if len(tvip) > 1 else None,
-                'source': source_name,
-                'matte': matte_var,
-                'timestamp': datetime.datetime.now().isoformat()
-            })
+            # Add the filename(s) to the list of uploaded filenames
+            for img_url in image_urls:
+                uploaded_files.append({
+                    'file': img_url,
+                    'remote_filename': remote_filename,
+                    'tv_ip': tv_ip if len(tvip) > 1 else None,
+                    'source': source_name,
+                    'matte': matte_var,
+                    'timestamp': datetime.datetime.now().isoformat()
+                })
             # Save the list of uploaded filenames to the file
             # log the text that will be written to upload_list_path
             logging.info(f'Writing uploaded files to {upload_list_path}')
@@ -135,7 +136,7 @@ def get_image_for_tv(tv_ip: str):
     remote_filename = utils.get_remote_filename(image_url, selected_source.__name__, tv_ip)
 
     if remote_filename:
-        return None, None, image_url, remote_filename, selected_source.__name__
+        return None, None, [image_url], remote_filename, selected_source.__name__
 
     image_data, file_type = selected_source.get_image(args, image_url)
     if image_data is None:
@@ -144,11 +145,12 @@ def get_image_for_tv(tv_ip: str):
     save_debug_image(image_data, f'debug_{selected_source.__name__}_original.jpg')
 
     logging.info('Resizing and cropping the image...')
-    resized_image_data = utils.resize_and_crop_image(image_data)
+    #resized_image_data = utils.resize_and_crop_image(image_data)
+    resized_image_data, img_srcs = utils.resize_or_combine_local_media(image_data, image_url, args.media_folder_path)
 
     save_debug_image(resized_image_data, f'debug_{selected_source.__name__}_resized.jpg')
 
-    return resized_image_data, file_type, image_url, None, selected_source.__name__
+    return resized_image_data, file_type, img_srcs, None, selected_source.__name__
 
 def save_debug_image(image_data: BytesIO, filename: str) -> None:
     if args.debugimage:
@@ -158,13 +160,13 @@ def save_debug_image(image_data: BytesIO, filename: str) -> None:
 
 if tvip:
     if len(tvip) > 1 and use_same_image:
-        image_data, file_type, image_url, remote_filename, source_name = get_image_for_tv(None)
+        image_data, file_type, image_urls, remote_filename, source_name = get_image_for_tv(None)
         for tv_ip in tvip:
-            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var)
+            process_tv(tv_ip, image_data, file_type, image_urls, remote_filename, source_name, matte_var)
     else:
         for tv_ip in tvip:
-            image_data, file_type, image_url, remote_filename, source_name = get_image_for_tv(tv_ip)
-            process_tv(tv_ip, image_data, file_type, image_url, remote_filename, source_name, matte_var)
+            image_data, file_type, image_urls, remote_filename, source_name = get_image_for_tv(tv_ip)
+            process_tv(tv_ip, image_data, file_type, image_urls, remote_filename, source_name, matte_var)
 else:
     logging.error('No TV IP addresses specified. Please use --tvip')
     sys.exit(1)

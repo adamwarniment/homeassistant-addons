@@ -3,6 +3,7 @@ import logging
 import random
 from io import BytesIO
 from typing import List, Tuple, Optional, Dict
+from PIL import Image
 
 #folder_path = '/media/frame'
 
@@ -12,7 +13,48 @@ def get_media_folder_images(folder_path: str) -> List[str]:
     logging.info(f"Files in {folder_path}:")
     for file in files:
         logging.info(f"  - {file}")
-    return [os.path.join(root, f) for root, dirs, files in os.walk(folder_path) for f in files if f.endswith(('.jpg', '.png', '.heic', '.HEIC'))]
+    return [os.path.join(root, f) for root, dirs, files in os.walk(folder_path) for f in files if f.endswith(('.jpg', '.jpeg', '.JPG', '.JPEG', '.png', '.PNG', '.heic', '.HEIC'))]
+
+def find_portrait_image_url(media_folder_path, exclusions: List[str] = []) -> Optional[str]:
+    """
+    Similar to get_image_url, but selects only portrait images (15% taller than wide).
+    Also accepts an exclusions list of filepaths to skip.
+    """
+    if media_folder_path:
+        folder_path = media_folder_path
+    else:
+        folder_path = '/media/frame'
+
+    files = get_media_folder_images(folder_path)
+    print(files)
+    random.shuffle(files) # Shuffle the list in place
+    print(files)
+    if not files:
+        logging.info('No images found in the media folder.')
+        return None
+
+    for file_path in files:
+        print(file_path);
+        # Check if the file_path is in the exclusions list
+        if file_path in exclusions:
+            logging.info(f"Skipping excluded file: {file_path}")
+            continue
+
+        try:
+            with open(file_path, 'rb') as f:
+                img_data = BytesIO(f.read())
+                img = Image.open(img_data)
+                width, height = img.size
+                if height > width * 1.15:  # Check for portrait orientation (15% taller)
+                    return folder_path + '/' + os.path.basename(file_path)
+                else:
+                    print('not portrait')
+        except (IOError, OSError) as e:
+            logging.warning(f"Error processing image {file_path}: {e}. Skipping.")
+            continue  # Skip to the next image if there's an error
+
+    logging.info('No suitable portrait images found in the media folder.')
+    return None
 
 def get_image_url(args):
     # folder path with fallback
