@@ -123,7 +123,7 @@ class Utils:
     @staticmethod
     def check_portrait(img_data):
         ## check if img_src holds an image that is 15% taller than it is wide
-        if not img_data or not img_data[0]:
+        if not img_data:
             return None
             
         image_data, _ = img_data
