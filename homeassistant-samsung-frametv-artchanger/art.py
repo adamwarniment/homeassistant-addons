@@ -86,6 +86,8 @@ utils = Utils(args.tvip, uploaded_files)
 
 def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_urls: List[str], remote_filename: str, source_name: str, matte_var: str):
     tv = SamsungTVWS(tv_ip)
+
+    print('processing', tv_ip, image_data, file_type, image_urls, remote_filename, source_name, matte_var)
     
     # Check if TV supports art mode
     if not tv.art().supported():
@@ -148,10 +150,10 @@ def get_image_for_tv(tv_ip: str):
     logging.info('Resizing and cropping the image...')
     #resized_image_data = utils.resize_and_crop_image(image_data)
     resized_image_data, img_srcs, portraits = utils.resize_or_combine_local_media(image_data, image_url, args.media_folder_path)
-    if portraits:
+    if portraits == True:
         file_type = 'JPEG'
-        
-    save_debug_image(resized_image_data, f'debug_{selected_source.__name__}_resized.jpg')
+
+    print('pre-porcessing', resized_image_data, file_type, img_srcs, None, selected_source.__name__)
 
     return resized_image_data, file_type, img_srcs, None, selected_source.__name__
 
