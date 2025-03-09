@@ -44,7 +44,8 @@ def find_portrait_image_url(media_folder_path, exclusions: List[str] = []) -> Op
                 img = Image.open(img_data)
                 width, height = img.size
                 if height > width * 1.15:  # Check for portrait orientation (15% taller)
-                    return folder_path + '/' + os.path.basename(file_path)
+                    return os.path.basename(file_path)
+                    #return folder_path + '/' + os.path.basename(file_path)
                 else:
                     print('not portrait')
         except (IOError, OSError) as e:
@@ -70,6 +71,23 @@ def get_image_url(args):
     selected_file = random.choice(files)
     return f"{os.path.basename(selected_file)}"
 
+def get_image_direct_path(media_folder_path, image_url) -> Tuple[Optional[BytesIO], Optional[str]]:
+    # folder path with fallback
+    if media_folder_path:
+        folder_path = media_folder_path
+    else:
+        folder_path = '/media/frame'
+
+    full_path = os.path.join(folder_path, image_url)
+    if not os.path.exists(full_path):
+        logging.error(f"File not found at all: {full_path}")
+        return None, None
+    
+    file_type = 'JPEG' if full_path.endswith(('.jpg','jpeg','.JPEG','.JPG')) else 'PNG' if full_path.endswith(('.png','.PNG')) else 'HEIC' if full_path.endswith(('.heic','.heif', '.HEIC', '.HEIF')) else 'unknown'
+    with open(full_path, 'rb') as f:
+        data = BytesIO(f.read())
+    return data, file_type
+
 def get_image(args, image_url) -> Tuple[Optional[BytesIO], Optional[str]]:
     # folder path with fallback
     if args.media_folder_path:
@@ -79,7 +97,7 @@ def get_image(args, image_url) -> Tuple[Optional[BytesIO], Optional[str]]:
 
     full_path = os.path.join(folder_path, image_url)
     if not os.path.exists(full_path):
-        logging.error(f"File not found: {full_path}")
+        logging.error(f"File not found at all: {full_path}")
         return None, None
     
     file_type = 'JPEG' if full_path.endswith(('.jpg','jpeg','.JPEG','.JPG')) else 'PNG' if full_path.endswith(('.png','.PNG')) else 'HEIC' if full_path.endswith(('.heic','.heif', '.HEIC', '.HEIF')) else 'unknown'

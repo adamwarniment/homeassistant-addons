@@ -17,21 +17,22 @@ class Utils:
     def resize_or_combine_local_media(img_data, img_src='', media_folder_path='', target_width=3840, target_height=2160):
         # log img_data
         isPortrait = Utils.check_portrait(img_data)
+        print(isPortrait)
         if isPortrait:
             ## go find another image that is portrait
             # args.media_folder_path = './test/images' #removed, using command line argument instead
             portrait_img_src = media_folder.find_portrait_image_url(media_folder_path, [img_src])
-            print(portrait_img_src)
-            img_data_two = Utils.get_image_data(portrait_img_src)
+            img_data_two = media_folder.get_image_direct_path(media_folder_path, portrait_img_src)
+            #img_data_two = Utils.get_image_data(portrait_img_src)
             logging.info('portrait image')
             output_img = Utils.combine_imgs(img_data, img_data_two)
             
             if output_img: #only run if an image exists
                 # Save the combined image to a file
-                output_path = "./test/images/output.jpg"
-                os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                output_img.save(output_path, format="JPEG", quality=90)
-                logging.info(f"Combined image saved to: {output_path}")
+                #output_path = "./test/images/output.jpg"
+                #os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                #output_img.save(output_path, format="JPEG", quality=90)
+                #logging.info(f"Combined image saved to: {output_path}")
                 return output_img, [img_src, portrait_img_src]
             else:
                 logging.error("No output image was generated.")
@@ -41,10 +42,10 @@ class Utils:
             output_img = Utils.resize_and_crop_image(image_data, target_width, target_height)
             if output_img:
             # Save the combined image to a file
-                output_path = "./test/images/output.jpg"
-                os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                output_img.save(output_path, format="JPEG", quality=90)
-                logging.info(f"Combined image saved to: {output_path}")
+                #output_path = "./test/images/output.jpg"
+                #os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                #output_img.save(output_path, format="JPEG", quality=90)
+                #logging.info(f"Combined image saved to: {output_path}")
                 return output_img, [img_src]
             else:
                 logging.error("No output image was generated.")
@@ -123,8 +124,8 @@ class Utils:
     @staticmethod
     def check_portrait(img_data):
         ## check if img_src holds an image that is 15% taller than it is wide
-        if not img_data:
-            return None
+        #if not img_data:
+        #    return None
             
         image_data, _ = img_data
 
@@ -210,29 +211,112 @@ class Utils:
 
             # Resize images if they are not the target height
             if img1.height != target_height:
-                img1 = Utils.resize_and_crop_image(image_data1, target_width=target_width // 2, target_height=target_height)
+                img1 = Utils.resize_and_crop_image(image_data1, target_width // 2, target_height)
 
             if img2.height != target_height:
-                img2 = Utils.resize_and_crop_image(image_data2, target_width=target_width // 2, target_height=target_height)
-            
+                img2 = Utils.resize_and_crop_image(image_data2, target_width // 2, target_height)
+
+            img1_data = Image.open(img1)
+            img2_data = Image.open(img2)
+
             # Calculate the dimensions for each half of the combined image
             half_width = target_width // 2
-
 
             # Create a new blank image with the target dimensions
             combined_img = Image.new("RGB", (target_width, target_height))
 
             # Paste the first image onto the left side
-            combined_img.paste(img1, (0, 0))
+            combined_img.paste(img1_data, (0, 0))
 
             # Paste the second image onto the right side
-            combined_img.paste(img2, (half_width, 0))
+            combined_img.paste(img2_data, (half_width, 0))
 
-            return combined_img
+            output = BytesIO()
+            combined_img.save(output, format='JPEG', quality=90)
+            output.seek(0)
+            return output
 
         except Exception as e:
             logging.error(f"Error combining images: {e}")
             return None
+
+    @staticmethod
+    def resize_portrait_img(image_data):
+      """
+      Resizes a portrait image to a target width of 1920 and height of 2160, 
+      extracting the vertical middle portion if the image is too tall.
+
+      Args:
+          image_data: A BytesIO object or a file path to the image data.
+
+      Returns:
+          A BytesIO object containing the resized image, or None if an error occurs.
+      """
+      target_width = 1920
+      target_height = 2160
+
+      try:
+          # Open the image, handling both BytesIO and file paths, and HEIC format
+          if isinstance(image_data, BytesIO):
+              image_data.seek(0)
+              try:
+                  img = Image.open(image_data)
+              except Exception:
+                  image_data.seek(0)
+                  heif_file = pillow_heif.read_heif(image_data)
+                  img = Image.frombytes(
+                      heif_file.mode,
+                      heif_file.size,
+                      heif_file.data,
+                      "raw",
+                  )
+          else:
+              try:
+                  img = Image.open(image_data)
+              except Exception:
+                  heif_file = pillow_heif.read_heif(image_data)
+                  img = Image.frombytes(
+                      heif_file.mode,
+                      heif_file.size,
+                      heif_file.data,
+                      "raw",
+                  )
+
+          # Check if the image is already the correct size
+          if img.width == target_width and img.height == target_height:
+              output = BytesIO()
+              img.save(output, format='JPEG', quality=90)
+              output.seek(0)
+              return output
+
+          # Check if the image is portrait (taller than wide)
+          if img.width > img.height:
+              logging.error("Input image is not portrait.")
+              return None
+
+          # Resize the image, maintaining aspect ratio, if smaller than target width
+          if img.width < target_width:
+            img = img.resize((target_width, int(img.height * (target_width/img.width))), Image.LANCZOS)
+
+          # Calculate cropping dimensions for vertical middle extraction
+          if img.height > target_height:
+              top = (img.height - target_height) // 2
+              bottom = top + target_height
+              img = img.crop((0, top, target_width, bottom))
+
+          # Resize to the target size (1920x2160)
+          if img.size != (target_width, target_height):
+            img = img.resize((target_width, target_height), Image.LANCZOS)
+
+          # Save the processed image to a BytesIO object
+          output = BytesIO()
+          img.save(output, format='JPEG', quality=90)
+          output.seek(0)
+          return output
+
+      except Exception as e:
+          logging.error(f"Error resizing/cropping image: {e}")
+          return None
 
     def get_remote_filename(self, file_name: str, source_name: str, tv_ip: str) -> Optional[str]:
         for uploaded_file in self.uploaded_files:
