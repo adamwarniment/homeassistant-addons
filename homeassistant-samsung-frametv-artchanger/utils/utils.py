@@ -22,7 +22,7 @@ class Utils:
             ## go find another image that is portrait
             # args.media_folder_path = './test/images' #removed, using command line argument instead
             portrait_img_src = media_folder.find_portrait_image_url(media_folder_path, [img_src])
-            img_data_two = media_folder.get_image_direct_path(media_folder_path, portrait_img_src)
+            img_data_two, img_filetype_two = media_folder.get_image_direct_path(media_folder_path, portrait_img_src)
             #img_data_two = Utils.get_image_data(portrait_img_src)
             logging.info('portrait image')
             output_img = Utils.combine_imgs(img_data, img_data_two)
@@ -38,8 +38,7 @@ class Utils:
                 logging.error("No output image was generated.")
 
         else:
-            image_data, _ = img_data
-            output_img = Utils.resize_and_crop_image(image_data, target_width, target_height)
+            output_img = Utils.resize_and_crop_image(img_data, target_width, target_height)
             if output_img:
             # Save the combined image to a file
                 #output_path = "./test/images/output.jpg"
@@ -127,7 +126,7 @@ class Utils:
         #if not img_data:
         #    return None
             
-        image_data, _ = img_data
+        image_data = img_data
 
         if isinstance(image_data, BytesIO):
             image_data.seek(0)
@@ -168,8 +167,12 @@ class Utils:
     @staticmethod
     def combine_imgs(img_data1, img_data2, target_width=3840, target_height=2160):
         try:
-            image_data1, _ = img_data1
-            image_data2, _ = img_data2
+            image_data1 = img_data1
+            image_data2 = img_data2
+
+            print(image_data1)
+            print(image_data2)
+
 
             # Ensure both inputs are BytesIO objects
             if not isinstance(image_data1, BytesIO) or not isinstance(image_data2, BytesIO):
