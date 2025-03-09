@@ -33,7 +33,7 @@ class Utils:
                 #os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 #output_img.save(output_path, format="JPEG", quality=90)
                 #logging.info(f"Combined image saved to: {output_path}")
-                return output_img, [img_src, portrait_img_src]
+                return output_img, [img_src, portrait_img_src], True
             else:
                 logging.error("No output image was generated.")
 
@@ -45,7 +45,7 @@ class Utils:
                 #os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 #output_img.save(output_path, format="JPEG", quality=90)
                 #logging.info(f"Combined image saved to: {output_path}")
-                return output_img, [img_src]
+                return output_img, [img_src], False
             else:
                 logging.error("No output image was generated.")
         return None #No longer returns bytesIO, returns None
