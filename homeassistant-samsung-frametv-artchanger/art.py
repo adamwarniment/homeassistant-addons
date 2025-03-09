@@ -150,8 +150,8 @@ def get_image_for_tv(tv_ip: str):
     logging.info('Resizing and cropping the image...')
     #resized_image_data = utils.resize_and_crop_image(image_data)
     resized_image_data, img_srcs, portraits = utils.resize_or_combine_local_media(image_data, image_url, args.media_folder_path)
-    if portraits == True:
-        file_type = 'JPEG'
+    # overrider file_type
+    file_type = 'JPEG'
 
     print('pre-porcessing', resized_image_data, file_type, img_srcs, None, selected_source.__name__)
 

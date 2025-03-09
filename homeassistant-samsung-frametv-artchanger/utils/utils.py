@@ -1,7 +1,7 @@
 from io import BytesIO
 import os
 import logging
-from PIL import Image
+from PIL import Image, ImageDraw
 from typing import List, Tuple, Optional, Dict
 import pillow_heif
 
@@ -233,6 +233,12 @@ class Utils:
 
             # Paste the second image onto the right side
             combined_img.paste(img2_data, (half_width, 0))
+
+            # Add black line at the center
+            draw = ImageDraw.Draw(combined_img)
+            line_start = (half_width - 15, 0)
+            line_end = (half_width + 15, target_height)
+            draw.line([line_start, line_end], fill=(0, 0, 0), width=30)
 
             output = BytesIO()
             combined_img.save(output, format='JPEG', quality=90)
