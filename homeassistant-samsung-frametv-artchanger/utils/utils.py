@@ -235,10 +235,26 @@ class Utils:
             combined_img.paste(img2_data, (half_width, 0))
 
             # Add black line at the center
+            #draw = ImageDraw.Draw(combined_img)
+            #line_start = (half_width - 15, 0)
+            #line_end = (half_width + 15, target_height)
+            #draw.line([line_start, line_end], fill=(0, 0, 0), width=30)
+
             draw = ImageDraw.Draw(combined_img)
-            line_start = (half_width - 15, 0)
-            line_end = (half_width + 15, target_height)
-            draw.line([line_start, line_end], fill=(0, 0, 0), width=30)
+            # Center Matte Lines
+            line_start = (half_width, 0)
+            line_end = (half_width, target_height)
+            draw.line([line_start, line_end], fill=(240, 240, 240), width=150)
+
+            left_matte_line_start = (half_width - 75, 0)
+            left_matte_line_end = (half_width - 75, target_height)
+            draw.line([left_matte_line_start, left_matte_line_end], fill=(255, 255, 255), width=20)
+
+            right_matte_line_start = (half_width + 75, 0)
+            right_matte_line_end = (half_width + 75, target_height)
+            draw.line([right_matte_line_start, right_matte_line_end], fill=(200, 200, 200), width=20)
+            
+            
 
             output = BytesIO()
             combined_img.save(output, format='JPEG', quality=90)

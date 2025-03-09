@@ -32,9 +32,9 @@ def find_portrait_image_url(media_folder_path, exclusions: List[str] = []) -> Op
         return None
 
     for file_path in files:
-        print(file_path);
+        file_name = os.path.basename(file_path)
         # Check if the file_path is in the exclusions list
-        if file_path in exclusions:
+        if file_name in exclusions:
             logging.info(f"Skipping excluded file: {file_path}")
             continue
 
