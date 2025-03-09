@@ -91,12 +91,12 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_urls: List
     
     # Check if TV supports art mode
     if not tv.art().supported():
-        logging.warning(f'TV at {tv_ip} does not support art mode.')
+        print(f'TV at {tv_ip} does not support art mode.')
         return
 
     if remote_filename is None:
         try:
-            logging.info(f'Uploading image to TV at {tv_ip}')
+            print(f'Uploading image to TV at {tv_ip}')
             remote_filename = tv.art().upload(image_data.getvalue(), file_type=file_type, matte=matte_var)
             if remote_filename is None:
                 raise Exception('No remote filename returned')
@@ -105,7 +105,7 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_urls: List
             #await tv.set_photo_filter(remote_filename, filter_type)
 
             tv.art().select_image(remote_filename, show=True)
-            logging.info(f'Image uploaded and selected on TV at {tv_ip}')
+            print(f'Image uploaded and selected on TV at {tv_ip}')
             # Add the filename(s) to the list of uploaded filenames
             for img_url in image_urls:
                 uploaded_files.append({
@@ -118,17 +118,17 @@ def process_tv(tv_ip: str, image_data: BytesIO, file_type: str, image_urls: List
                 })
             # Save the list of uploaded filenames to the file
             # log the text that will be written to upload_list_path
-            logging.info(f'Writing uploaded files to {upload_list_path}')
+            print(f'Writing uploaded files to {upload_list_path}')
             with open(upload_list_path, 'w') as f:
                 # log the json dump
-                logging.info(f'uploaded files {uploaded_files}')
+                print(f'uploaded files {uploaded_files}')
                 json.dump(uploaded_files, f)
         except Exception as e:
-            logging.error(f'There was an error uploading the image to TV at {tv_ip}: ' + str(e))
+            print(f'There was an error uploading the image to TV at {tv_ip}: ' + str(e))
     else:
         if not args.upload_all:
             # Select the image using the remote file name only if not in 'upload-all' mode
-            logging.info(f'Setting existing image on TV at {tv_ip}, skipping upload')
+            print(f'Setting existing image on TV at {tv_ip}, skipping upload')
             tv.art().select_image(remote_filename, show=True)
 
 def get_image_for_tv(tv_ip: str):
