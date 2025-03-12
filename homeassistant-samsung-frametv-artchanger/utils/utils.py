@@ -14,7 +14,7 @@ class Utils:
         self.check_tv_ip = len(tvips.split(',')) > 1 if tvips else False #only check the tv_ip if there is more than one tv_ip
 
     @staticmethod
-    def resize_or_combine_local_media(img_data, img_src='', media_folder_path='', target_width=3840, target_height=2160):
+    def resize_or_combine_local_media(img_data, img_src='', media_folder_path='', target_width=3840, target_height=2160, matte_size=150):
         # log img_data
         isPortrait = Utils.check_portrait(img_data)
         print(isPortrait)
@@ -25,7 +25,14 @@ class Utils:
             img_data_two, img_filetype_two = media_folder.get_image_direct_path(media_folder_path, portrait_img_src)
             #img_data_two = Utils.get_image_data(portrait_img_src)
             logging.info('portrait image')
-            output_img = Utils.combine_imgs(img_data, img_data_two)
+            # crop image
+            img_data_cropped = Utils.resize_and_crop_image(img_data, target_width // 2 - matte_size*2, target_height - matte_size*2)
+            img_data_matte = Utils.apply_matte(img_data_cropped, matte_size, True, matte_size//4)
+            # crop image
+            img_data_two_cropped = Utils.resize_and_crop_image(img_data_two, target_width // 2 - matte_size*2, target_height - matte_size*2)
+            img_data_two_matte = Utils.apply_matte(img_data_two_cropped, matte_size, True, -1*matte_size//4)
+            # combine imgs
+            output_img = Utils.combine_imgs(img_data_matte, img_data_two_matte)
             
             if output_img: #only run if an image exists
                 # Save the combined image to a file
@@ -38,7 +45,8 @@ class Utils:
                 logging.error("No output image was generated.")
 
         else:
-            output_img = Utils.resize_and_crop_image(img_data, target_width, target_height)
+            output_img = Utils.resize_and_crop_image(img_data, target_width  , target_height )
+            output_img = Utils.apply_matte(output_img, matte_size)
             if output_img:
             # Save the combined image to a file
                 #output_path = "./test/images/output.jpg"
@@ -240,22 +248,6 @@ class Utils:
             #line_end = (half_width + 15, target_height)
             #draw.line([line_start, line_end], fill=(0, 0, 0), width=30)
 
-            draw = ImageDraw.Draw(combined_img)
-            # Center Matte Lines
-            line_start = (half_width, 0)
-            line_end = (half_width, target_height)
-            draw.line([line_start, line_end], fill=(240, 240, 240), width=150)
-
-            left_matte_line_start = (half_width - 75, 0)
-            left_matte_line_end = (half_width - 75, target_height)
-            draw.line([left_matte_line_start, left_matte_line_end], fill=(255, 255, 255), width=20)
-
-            right_matte_line_start = (half_width + 75, 0)
-            right_matte_line_end = (half_width + 75, target_height)
-            draw.line([right_matte_line_start, right_matte_line_end], fill=(200, 200, 200), width=20)
-            
-            
-
             output = BytesIO()
             combined_img.save(output, format='JPEG', quality=90)
             output.seek(0)
@@ -342,6 +334,104 @@ class Utils:
       except Exception as e:
           logging.error(f"Error resizing/cropping image: {e}")
           return None
+      
+    @staticmethod
+    def apply_matte(image_data, matte_size=75, portrait=False, offset_x=0, offset_y=0):
+        bezel_size = matte_size // 10
+
+        # Check if the input is a BytesIO object or a file path
+        if isinstance(image_data, BytesIO):
+            image_data.seek(0)
+            try:
+                # Try to open as a standard image format
+                img = Image.open(image_data)
+            except Exception:
+                # Try to open as HEIC using pillow_heif
+                image_data.seek(0)  # Reset the stream position
+                try:
+                    heif_file = pillow_heif.read_heif(image_data)
+                    img = Image.frombytes(
+                        heif_file.mode,
+                        heif_file.size,
+                        heif_file.data,
+                        "raw",
+                    )
+                except Exception as e:
+                    raise Exception(f"Failed to open image as either standard or HEIC format: {e}")
+
+        else:
+            try:
+                # Try to open as a standard image format
+                img = Image.open(image_data)
+            except Exception:
+                # Try to open as HEIC using pillow_heif
+                try:
+                    heif_file = pillow_heif.read_heif(image_data)
+                    img = Image.frombytes(
+                        heif_file.mode,
+                        heif_file.size,
+                        heif_file.data,
+                        "raw",
+                    )
+                except Exception as e:
+                     raise Exception(f"Failed to open image as either standard or HEIC format: {e}")
+                
+        # create a new blank image with the exact same dimensions of the current image
+        matte_img = Image.new("RGB", (img.width, img.height))
+
+        # fill matte_img with white
+        draw = ImageDraw.Draw(matte_img)
+        draw.rectangle([(0, 0), (img.width, img.height)], fill=(247, 246, 242))
+
+        # draw matte triangles
+        # left 
+        draw.polygon(
+            [
+                (matte_size - bezel_size + offset_x, matte_img.height - matte_size + bezel_size + offset_y), # bottom left
+                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y), # center
+                (matte_size - bezel_size + offset_x, matte_size - bezel_size + offset_y), # top left
+            ],
+            fill=(200, 200, 200),
+        )
+        # top
+        draw.polygon(
+            [
+                (matte_size - bezel_size + offset_x, matte_size - bezel_size + offset_y), # top left
+                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y), # center
+                (matte_img.width - matte_size + bezel_size + offset_x, matte_size - bezel_size + offset_y), # top right
+            ],
+            fill=(150, 150, 150),
+        )
+        # right
+        draw.polygon(
+            [
+                (matte_img.width - matte_size + bezel_size + offset_x, matte_size - bezel_size + offset_y), # top right
+                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y), # center
+                (matte_img.width - matte_size + bezel_size + offset_x, matte_img.height - matte_size + bezel_size + offset_y), # bottom right
+            ],
+            fill=(200, 200, 200),
+        )
+        # bottom
+        draw.polygon(
+            [
+                (matte_size - bezel_size + offset_x, matte_img.height - matte_size + bezel_size + offset_y), # bottom left
+                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y), # center
+                (matte_img.width - matte_size + bezel_size + offset_x, matte_img.height - matte_size + bezel_size + offset_y), # bottom right
+            ],
+            fill=(225, 225, 225),
+        )
+                
+        # resize by shrinking image from 50px on all sides
+        img = img.resize((img.width - matte_size*2, img.height - matte_size*2), Image.LANCZOS)
+
+        # draw img just inside the matte
+        matte_img.paste(img, (matte_size + offset_x, matte_size + offset_y))
+
+        # Save the processed image to a BytesIO object
+        output = BytesIO()
+        matte_img.save(output, format='JPEG', quality=90)
+        output.seek(0)
+        return output
 
     def get_remote_filename(self, file_name: str, source_name: str, tv_ip: str) -> Optional[str]:
         for uploaded_file in self.uploaded_files:
