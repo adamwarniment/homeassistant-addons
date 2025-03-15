@@ -45,7 +45,9 @@ class Utils:
                 logging.error("No output image was generated.")
 
         else:
-            output_img = Utils.resize_and_crop_image(img_data, target_width  , target_height )
+            matte_size = round(matte_size*1.5)
+            output_img = Utils.resize_and_crop_image(img_data, target_width, target_height)
+            
             output_img = Utils.apply_matte(output_img, matte_size)
             if output_img:
             # Save the combined image to a file
@@ -420,9 +422,13 @@ class Utils:
             ],
             fill=(225, 225, 225),
         )
+
+        ## resize first
                 
         # resize by shrinking image from 50px on all sides
-        img = img.resize((img.width - matte_size*2, img.height - matte_size*2), Image.LANCZOS)
+        #img = img.resize((img.width - matte_size*2, img.height - matte_size*2), Image.LANCZOS)
+        img = img.crop((matte_size, matte_size, img.width - matte_size, img.height - matte_size))
+
 
         # draw img just inside the matte
         matte_img.paste(img, (matte_size + offset_x, matte_size + offset_y))
