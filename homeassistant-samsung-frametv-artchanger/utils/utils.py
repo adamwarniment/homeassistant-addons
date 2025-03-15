@@ -434,7 +434,7 @@ class Utils:
 
 
         # draw img just inside the matte
-        #matte_img.paste(img, (matte_size + offset_x, matte_size + offset_y))
+        matte_img.paste(img, (matte_size + offset_x, matte_size + offset_y))
 
         # Save the processed image to a BytesIO object
         output = BytesIO()
