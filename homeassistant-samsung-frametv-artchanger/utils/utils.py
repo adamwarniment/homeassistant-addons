@@ -45,7 +45,7 @@ class Utils:
                 logging.error("No output image was generated.")
 
         else:
-            matte_size = round(matte_size*1.5)
+            matte_size = round(matte_size*1.75)
             output_img = Utils.resize_and_crop_image(img_data, target_width, target_height)
             
             output_img = Utils.apply_matte(output_img, matte_size)
@@ -383,7 +383,10 @@ class Utils:
 
         # fill matte_img with white
         draw = ImageDraw.Draw(matte_img)
-        draw.rectangle([(0, 0), (img.width, img.height)], fill=(247, 246, 242))
+        draw.rectangle([(0, 0), (img.width, img.height)], fill=(232, 231, 225))
+
+        # landscape correction
+        landscape_adj = 0 if portrait else round(matte_img.height // 4)
 
         # draw matte triangles
         # left 
@@ -395,15 +398,6 @@ class Utils:
             ],
             fill=(200, 200, 200),
         )
-        # top
-        draw.polygon(
-            [
-                (matte_size - bezel_size + offset_x, matte_size - bezel_size + offset_y), # top left
-                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y), # center
-                (matte_img.width - matte_size + bezel_size + offset_x, matte_size - bezel_size + offset_y), # top right
-            ],
-            fill=(150, 150, 150),
-        )
         # right
         draw.polygon(
             [
@@ -413,11 +407,20 @@ class Utils:
             ],
             fill=(200, 200, 200),
         )
+        # top
+        draw.polygon(
+            [
+                (matte_size - bezel_size + offset_x, matte_size - bezel_size + offset_y), # top left
+                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y + landscape_adj), # center
+                (matte_img.width - matte_size + bezel_size + offset_x, matte_size - bezel_size + offset_y), # top right
+            ],
+            fill=(150, 150, 150),
+        )
         # bottom
         draw.polygon(
             [
                 (matte_size - bezel_size + offset_x, matte_img.height - matte_size + bezel_size + offset_y), # bottom left
-                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y), # center
+                (matte_img.width // 2 + offset_x, matte_img.height // 2 + offset_y - landscape_adj), # center
                 (matte_img.width - matte_size + bezel_size + offset_x, matte_img.height - matte_size + bezel_size + offset_y), # bottom right
             ],
             fill=(225, 225, 225),
@@ -431,7 +434,7 @@ class Utils:
 
 
         # draw img just inside the matte
-        matte_img.paste(img, (matte_size + offset_x, matte_size + offset_y))
+        #matte_img.paste(img, (matte_size + offset_x, matte_size + offset_y))
 
         # Save the processed image to a BytesIO object
         output = BytesIO()
