@@ -49,6 +49,7 @@ class Utils:
             output_img = Utils.resize_and_crop_image(img_data, target_width, target_height)
             
             output_img = Utils.apply_matte(output_img, matte_size)
+
             if output_img:
             # Save the combined image to a file
                 #output_path = "./test/images/output.jpg"
@@ -427,12 +428,20 @@ class Utils:
         )
 
         ## resize first
+        if portrait:
+            img = img.resize((int((img.height - matte_size * 2) * (img.width / img.height)), img.height - matte_size * 2), Image.LANCZOS)
+            #img = img.resize((img.width - matte_size * 2, int((img.width - matte_size * 2) * (img.height / img.width))), Image.LANCZOS)
+            img = img.crop((bezel_size // 2, 0, img.width - bezel_size*2, img.height))
+        else:
+            img = img.resize((img.width - matte_size * 2, int((img.width - matte_size * 2) * (img.height / img.width))), Image.LANCZOS)
+            img = img.crop((0, matte_size//2, img.width, img.height - matte_size//2 + bezel_size + bezel_size//2))
                 
         # resize by shrinking image from 50px on all sides
         #img = img.resize((img.width - matte_size*2, img.height - matte_size*2), Image.LANCZOS)
-        img = img.crop((matte_size, matte_size, img.width - matte_size, img.height - matte_size))
+        #img = img.resize((img.width - matte_size * 2, int((img.width - matte_size * 2) * (img.height / img.width))), Image.LANCZOS)
 
-
+        #img = img.crop((matte_size, matte_size, img.width - matte_size, img.height - matte_size))
+        
         # draw img just inside the matte
         matte_img.paste(img, (matte_size + offset_x, matte_size + offset_y))
 
