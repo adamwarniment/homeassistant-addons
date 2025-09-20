@@ -53,9 +53,9 @@ action:
       addon: local_hass-frametv-artchanger
 ```
 
-## TODO
-
-Here's some ideas for stuff to implement
-- [ ] Delete old N images on TV, e.g. configurable to keep last 100 uploaded images and delete an older image everytime a new one is uploaded
-- [ ] More sources, especially something for high res contemporary art would be awesome or other curated sources
-- [ ] Dashboard card that shows currently active art and maybe allows selection of other art
+## Development and Publish Instructions
+In order to contribute, follow these steps.
+1. git clone the entire repo
+2. Modify the code
+3. Ensure version number config.yaml in the addon root folder homeassistant-samsung-fraemtv-artchanger is iterated
+4. Go to gihub actions and run the publish option to publish new versions to dockerhub
