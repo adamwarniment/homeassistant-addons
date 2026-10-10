@@ -85,6 +85,10 @@ def create_app(engine: Engine, restrict_to_ingress: bool) -> web.Application:
     async def history(_):
         return web.json_response(list(reversed(engine.store.history[-100:])))
 
+    @routes.get("/api/tv/storage")
+    async def tv_storage(_):
+        return web.json_response(await engine.storage())
+
     @routes.post("/api/tv/test")
     async def tv_test(_):
         return web.json_response(await engine.refresh_tv_status())

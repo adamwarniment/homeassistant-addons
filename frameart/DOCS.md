@@ -40,7 +40,7 @@ The add-on exposes `sensor.frame_art` (current photo) and accepts commands via
 action: hassio.addon_stdin
 data:
   addon: <your add-on slug, see the add-on page URL>
-  input: next            # or: pause, resume, rescan, {"show": "holiday/IMG_0042.heic"}
+  input: next            # or: pause, resume, rescan, cleanup, {"show": "holiday/IMG_0042.heic"}
 ```
 
 Example – new photo when someone walks into the living room in the morning:
@@ -66,6 +66,10 @@ actions:
 - **TV storage**: the add-on deletes older images it uploaded, keeping the last 30
   (Settings → Keep last N uploads). Photos it has already uploaded are re-selected
   instead of re-uploaded, as long as the frame style hasn't changed.
+- **Old photos from earlier versions**: Settings → Television → **Check storage** shows
+  how many images in the TV's My Photos aren't managed by Frame Art, and **Delete old
+  photos** removes them (keeping the one on screen). Anything you added to My Photos
+  yourself counts as "old" too. Art Store pieces are never touched.
 - **TV off**: if the TV is unreachable the attempt is logged and retried at the next
   rotation.
 - **Network shares**: the folder is polled, not watched with inotify, so photos

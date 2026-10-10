@@ -9,6 +9,9 @@ import uuid
 
 log = logging.getLogger(__name__)
 
+MY_PHOTOS = "MY-C0002"  # the TV's "My Photos" category; Art Store pieces live elsewhere
+DELETE_BATCH = 20       # large delete lists time out on some models
+
 
 class TVError(Exception):
     pass
@@ -60,11 +63,35 @@ class FrameTV:
             raise TVError(f"Select failed: {e}") from e
 
     def delete(self, content_ids: list[str]) -> None:
-        if content_ids:
+        """Best-effort delete used for routine pruning; failures are only logged."""
+        try:
+            self.delete_strict(content_ids)
+        except TVError as e:
+            log.warning("Could not delete old uploads %s: %s", content_ids, e)
+
+    def my_photos(self) -> tuple[list[str], str | None]:
+        """Content ids in My Photos, plus the id currently on screen (if any)."""
+        try:
+            art = self._art()
+            ids = [item["content_id"] for item in (art.available(MY_PHOTOS) or [])
+                   if item.get("content_id")]
             try:
-                self._art().delete_list(content_ids)
-            except Exception as e:
-                log.warning("Could not delete old uploads %s: %s", content_ids, e)
+                current = (art.get_current() or {}).get("content_id")
+            except Exception:
+                current = None
+            return ids, current
+        except Exception as e:
+            raise TVError(f"Could not list photos on the TV: {e}") from e
+
+    def delete_strict(self, content_ids: list[str]) -> None:
+        if not content_ids:
+            return
+        try:
+            art = self._art()
+            for i in range(0, len(content_ids), DELETE_BATCH):
+                art.delete_list(content_ids[i:i + DELETE_BATCH])
+        except Exception as e:
+            raise TVError(f"Delete failed: {e}") from e
 
 
 class DryRunTV:
@@ -88,6 +115,12 @@ class DryRunTV:
 
     def select(self, content_id: str) -> bool:
         return content_id in self.ids
+
+    def my_photos(self) -> tuple[list[str], str | None]:
+        return sorted(self.ids), None
+
+    def delete_strict(self, content_ids: list[str]) -> None:
+        self.delete(content_ids)
 
     def delete(self, content_ids: list[str]) -> None:
         for cid in content_ids:

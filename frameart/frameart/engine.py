@@ -250,6 +250,42 @@ class Engine:
         self.store.save_state()
         log.info("Removed %d old upload(s) from the TV", len(stale))
 
+    # ------------------------------------------------------------------ TV storage
+
+    def _protected_ids(self, on_screen: str | None) -> set[str]:
+        keep = {v["content_id"] for v in self.store.uploads.values()}
+        if self.current:
+            keep.add(self.current.get("content_id"))
+        if on_screen:
+            keep.add(on_screen)
+        return keep
+
+    async def storage(self) -> dict:
+        """What's in the TV's My Photos, split into ours vs. leftovers from earlier versions."""
+        try:
+            ids, on_screen = await asyncio.to_thread(self.tv().my_photos)
+        except TVError as e:
+            return {"ok": False, "error": str(e)}
+        keep = self._protected_ids(on_screen)
+        others = [i for i in ids if i not in keep]
+        return {"ok": True, "total": len(ids), "ours": len(ids) - len(others), "others": len(others)}
+
+    async def cleanup(self) -> dict:
+        """Delete every My Photos image Frame Art isn't tracking, except the one on screen."""
+        async with self._push_lock:
+            try:
+                tv = self.tv()
+                ids, on_screen = await asyncio.to_thread(tv.my_photos)
+                keep = self._protected_ids(on_screen)
+                doomed = [i for i in ids if i not in keep]
+                if doomed:
+                    await asyncio.to_thread(tv.delete_strict, doomed)
+            except TVError as e:
+                log.error("Cleanup failed: %s", e)
+                return {"ok": False, "error": str(e)}
+        log.info("Cleanup removed %d old photo(s) from the TV, kept %d", len(doomed), len(ids) - len(doomed))
+        return {"ok": True, "deleted": len(doomed), "kept": len(ids) - len(doomed)}
+
     async def refresh_tv_status(self) -> dict:
         self.tv_status = await asyncio.to_thread(self.tv().status)
         return self.tv_status
@@ -257,7 +293,7 @@ class Engine:
     # ------------------------------------------------------------------ commands
 
     async def command(self, cmd) -> dict:
-        """Commands from the UI or hassio.addon_stdin: "next", "pause", "resume", {"show": path}."""
+        """Commands from the UI or hassio.addon_stdin: next, pause, resume, rescan, cleanup, {"show": path}."""
         if isinstance(cmd, str):
             cmd = {"action": cmd.strip().lower()}
         action = cmd.get("action") or ("show" if "show" in cmd else "")
@@ -268,6 +304,8 @@ class Engine:
             self.store.update_settings({"playback": {"enabled": action == "resume"}})
             self.settings_changed()
             return {"ok": True}
+        if action == "cleanup":
+            return await self.cleanup()
         if action == "rescan":
             await asyncio.to_thread(self.library.scan)
             return {"ok": True, "count": len(self.library.photos)}

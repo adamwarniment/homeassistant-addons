@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0
+
+- TV storage cleanup (Settings → Television → Check storage): deletes leftover photos in the TV's My Photos from earlier versions, keeping what Frame Art manages and the image on screen. Art Store pieces are untouched. Also available as the `cleanup` stdin command.
+- UI restyled to match Home Assistant (colours, Roboto, cards, tabs, switches, light/dark).
+
 ## 2.0.0
 
 Complete rewrite.

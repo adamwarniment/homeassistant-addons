@@ -434,6 +434,38 @@ $("#tvTest").addEventListener("click", async () => {
   refreshStatus();
 });
 
+let storageOthers = 0;
+async function checkStorage() {
+  const info = $("#storageInfo");
+  const clean = $("#storageClean");
+  info.textContent = "Asking the TV…";
+  clean.hidden = true;
+  try {
+    const s = await api("api/tv/storage");
+    if (!s.ok) { info.textContent = s.error; return; }
+    storageOthers = s.others;
+    info.textContent = `${s.total} photo${s.total === 1 ? "" : "s"} in My Photos: ${s.ours} managed by Frame Art, ` +
+      `${s.others} old or unmanaged.` + (s.others ? "" : " Nothing to clean up.");
+    clean.hidden = !s.others;
+    clean.textContent = `Delete ${s.others} old photo${s.others === 1 ? "" : "s"}`;
+  } catch (e) { info.textContent = e.message; }
+}
+$("#storageCheck").addEventListener("click", checkStorage);
+$("#storageClean").addEventListener("click", async () => {
+  if (!confirm(`Permanently delete ${storageOthers} photo(s) from the TV's My Photos?\n\n` +
+               "Everything Frame Art isn't currently managing goes, except the image on screen. " +
+               "Art Store pieces are not affected.")) return;
+  const btn = $("#storageClean");
+  btn.disabled = true;
+  btn.textContent = "Deleting…";
+  try {
+    const r = await api("api/command", { method: "POST", body: { action: "cleanup" } });
+    r.ok ? toast(`Deleted ${r.deleted} photo(s) from the TV`) : toast(r.error, true);
+  } catch (e) { toast(e.message, true); }
+  btn.disabled = false;
+  checkStorage();
+});
+
 // ------------------------------------------------------------------ history
 
 async function loadHistory() {

@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration
 name: Frame Art
-version: "2.0.0"
+version: "2.1.0"
 # Same slug as the 1.x add-on so this installs as an update: /data, options and
 # automations carry over.
 slug: hass-frametv-artchanger

@@ -124,3 +124,27 @@ def test_legacy_placeholder_ip_ignored(tmp_path):
     store = Store(str(tmp_path / "data"))
     store.import_legacy({"tv": "192.168.1.1"})
     assert store.settings["tv"]["host"] == ""
+
+
+def test_cleanup_removes_leftovers_but_keeps_ours(tmp_path):
+    media = make_library(tmp_path, [("a.jpg", (300, 200))])
+    eng = make_engine(tmp_path, media)
+    dry = tmp_path / "data" / "cache" / "dry-run"
+    dry.mkdir(parents=True)
+    for old in ("MY_F0001", "MY_F0002", "MY_F0003"):   # uploads from the 1.x add-on
+        (dry / f"{old}.jpg").write_bytes(b"x")
+
+    async def run():
+        await eng.start()
+        shown = await eng.show(["a.jpg"])
+        before = await eng.storage()
+        result = await eng.cleanup()
+        after = await eng.storage()
+        await eng.stop()
+        return shown, before, result, after
+
+    shown, before, result, after = asyncio.run(run())
+    assert before == {"ok": True, "total": 4, "ours": 1, "others": 3}
+    assert result == {"ok": True, "deleted": 3, "kept": 1}
+    assert after["others"] == 0
+    assert os.listdir(dry) == [shown["content_id"] + ".jpg"]

@@ -4,12 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Frame Art</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap">
   <link rel="stylesheet" href="static/app.css">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 7.5h11v9h-11z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 15.5l3-3.2 2.2 2.2 1.6-1.4 3.2 2.4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 3H21V21H3V3M5 5V19H19V5H5M7 7H17V17H7V7M9 9V15H15V9H9Z"/></svg>
       <span>Frame Art</span>
     </div>
     <span id="tvPill" class="pill">…</span>
@@ -158,6 +160,14 @@
             <select name="tv.tv_matte"><option value="none">None (recommended)</option><option value="shadowbox_polar">Shadowbox – polar</option><option value="modern_warm">Modern – warm</option><option value="flexible_neutral">Flexible – neutral</option></select>
           </label>
           <label class="field switch"><span>Dry run (render only, don't touch the TV)</span><input name="tv.dry_run" type="checkbox"><i></i></label>
+          <div class="storage">
+            <span class="field-label">TV storage</span>
+            <p id="storageInfo" class="hint">Check what's in the TV's My Photos, including leftovers from older versions of this add-on.</p>
+            <div class="row gap wrap">
+              <button id="storageCheck" class="btn ghost" type="button">Check storage</button>
+              <button id="storageClean" class="btn danger" type="button" hidden>Delete old photos</button>
+            </div>
+          </div>
         </fieldset>
 
         <fieldset class="card">
