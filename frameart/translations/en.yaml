@@ -1,0 +1,10 @@
+configuration:
+  log_level:
+    name: Log level
+    description: Everything else (TV, folder, rotation, frame style) is configured in the add-on's web UI.
+  tv:
+    name: Legacy TV address
+    description: From version 1.x. Imported once on first start; change it in the web UI instead.
+  media_folder_path:
+    name: Legacy media folder
+    description: From version 1.x. Imported once on first start; change it in the web UI instead.

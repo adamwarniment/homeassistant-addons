@@ -1,4 +1,4 @@
 # https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
-name: (Custom) Samsung Frame TV Art Changer Add-on
+name: Adam's Home Assistant add-ons
 url: "https://github.com/adamwarniment/homeassistant-addons"
 maintainer: Adam Warniment

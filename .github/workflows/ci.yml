@@ -1,0 +1,38 @@
+# Runs on GitHub Actions and on Gitea/Forgejo Actions (both read .github/workflows).
+# Nothing is published: Home Assistant builds the add-on itself from this repo.
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r frameart/requirements.txt pytest
+      - run: python -m pytest -q
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check config.yaml version was bumped when the add-on changed
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q '^frameart/' && \
+             ! git diff HEAD~1 HEAD -- frameart/config.yaml | grep -q '^+version:'; then
+            echo "::warning::frameart/ changed without a version bump – HA won't offer an update"
+          fi
+      - name: Build the add-on image (amd64) the way HA will
+        run: |
+          docker build \
+            --build-arg BUILD_FROM="$(grep amd64 frameart/build.yaml | awk '{print $2}')" \
+            -t frameart-test frameart
+          docker run --rm --entrypoint python3 -w /app frameart-test -c \
+            "import frameart.engine, frameart.web, samsungtvws, pillow_heif; print('imports ok')"

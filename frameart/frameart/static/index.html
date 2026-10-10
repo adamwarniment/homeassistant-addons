@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Frame Art</title>
+  <link rel="stylesheet" href="static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.5 7.5h11v9h-11z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 15.5l3-3.2 2.2 2.2 1.6-1.4 3.2 2.4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+      <span>Frame Art</span>
+    </div>
+    <span id="tvPill" class="pill">…</span>
+    <div class="spacer"></div>
+    <button id="pauseBtn" class="btn ghost" type="button">Pause</button>
+    <button id="nextBtn" class="btn primary" type="button">Next photo</button>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="now" class="active">Now showing</button>
+    <button role="tab" data-tab="frame">Frame</button>
+    <button role="tab" data-tab="library">Library</button>
+    <button role="tab" data-tab="settings">Settings</button>
+    <button role="tab" data-tab="history">History</button>
+  </nav>
+
+  <main>
+    <div id="errorBanner" class="banner error" hidden></div>
+
+    <!-- NOW SHOWING -->
+    <section id="tab-now" class="tab active">
+      <div class="now">
+        <div class="tv-frame"><div class="tv-screen"><img id="nowImg" alt=""><div id="nowEmpty" class="empty">Nothing shown yet</div></div></div>
+        <aside class="card now-info">
+          <h2 id="nowTitle">—</h2>
+          <dl class="facts">
+            <dt>Shown</dt><dd id="nowWhen">—</dd>
+            <dt>Why</dt><dd id="nowWhy">—</dd>
+            <dt>Next change</dt><dd id="nowNext">—</dd>
+            <dt>Library</dt><dd id="nowCount">—</dd>
+          </dl>
+          <div class="row gap">
+            <button class="btn" type="button" data-goto="frame">Adjust frame</button>
+            <button class="btn" type="button" data-goto="library">Pick a photo</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- FRAME DESIGNER -->
+    <section id="tab-frame" class="tab">
+      <div class="designer">
+        <div class="preview-col">
+          <div class="tv-frame"><div class="tv-screen">
+            <img id="designImg" alt="Frame preview">
+            <div id="designSpin" class="spin" hidden></div>
+          </div></div>
+          <div class="row gap wrap preview-tools">
+            <label class="inline">Preview with
+              <select id="designPhoto"><option value="">Current photo</option></select>
+            </label>
+            <button id="designRandom" class="btn ghost" type="button" title="Preview a random photo">Random photo</button>
+            <button id="designZoom" class="btn ghost" type="button" title="Inspect at full resolution">Zoom 1:1</button>
+          </div>
+          <div class="savebar">
+            <span id="dirtyNote" class="muted">All changes saved</span>
+            <div class="spacer"></div>
+            <button id="frameRevert" class="btn ghost" type="button">Revert</button>
+            <button id="frameSave" class="btn" type="button">Save</button>
+            <button id="frameSaveShow" class="btn primary" type="button">Save &amp; show</button>
+          </div>
+        </div>
+
+        <div class="controls">
+          <details open class="card group">
+            <summary>Layout</summary>
+            <div class="field"><span>Style</span>
+              <div class="seg" data-key="style">
+                <button type="button" data-v="bevel">Bevel mat</button><button type="button" data-v="flat">Flat mat</button><button type="button" data-v="none">No mat</button>
+              </div>
+            </div>
+            <div class="field"><span>Opening</span>
+              <div class="seg" data-key="window">
+                <button type="button" data-v="fill">Fill (crop photo)</button><button type="button" data-v="match">Match photo shape</button>
+              </div>
+            </div>
+            <label class="field range"><span>Mat width</span><input type="range" data-key="border" min="0" max="0.25" step="0.005"><output></output></label>
+            <label class="field range"><span>Bottom weight</span><input type="range" data-key="bottom_weight" min="0" max="0.08" step="0.002"><output></output></label>
+            <label class="field range"><span>Gap between portraits</span><input type="range" data-key="portrait_gap" min="0.01" max="0.2" step="0.005"><output></output></label>
+          </details>
+
+          <details open class="card group">
+            <summary>Mat colour</summary>
+            <div class="swatches" id="swatches"></div>
+            <div class="row gap">
+              <label class="field color"><span>Mat</span><input type="color" data-key="mat_color"></label>
+              <label class="field color"><span>Bevel core</span><input type="color" data-key="core_color"></label>
+            </div>
+          </details>
+
+          <details open class="card group">
+            <summary>Bevel &amp; light</summary>
+            <label class="field range"><span>Bevel width</span><input type="range" data-key="bevel" min="0" max="0.018" step="0.0005"><output></output></label>
+            <label class="field range"><span>Bevel shading</span><input type="range" data-key="bevel_contrast" min="0" max="1" step="0.05"><output></output></label>
+            <label class="field range"><span>Light from</span><input type="range" data-key="light_angle" min="0" max="180" step="5"><output></output></label>
+            <label class="field range"><span>Depth shadow</span><input type="range" data-key="shadow" min="0" max="1" step="0.05"><output></output></label>
+            <label class="field switch"><span>Embossed rule</span><input type="checkbox" data-key="emboss_line"><i></i></label>
+            <label class="field range"><span>Rule distance</span><input type="range" data-key="emboss_offset" min="0.008" max="0.06" step="0.001"><output></output></label>
+          </details>
+
+          <details open class="card group">
+            <summary>Hand-made feel</summary>
+            <p class="hint">Tiny, deliberate flaws so the mat reads as paper board rather than a flat graphic. Keep these low — they should be felt, not seen.</p>
+            <label class="field range strong"><span>Imperfection</span><input type="range" data-key="imperfection" min="0" max="1" step="0.05"><output></output></label>
+            <details class="sub">
+              <summary>Fine-tune</summary>
+              <label class="field range"><span>Paper grain</span><input type="range" data-key="grain" min="0" max="1" step="0.05"><output></output></label>
+              <label class="field range"><span>Mottling</span><input type="range" data-key="mottle" min="0" max="1" step="0.05"><output></output></label>
+              <label class="field range"><span>Colour drift</span><input type="range" data-key="tint_drift" min="0" max="1" step="0.05"><output></output></label>
+              <label class="field range"><span>Cut wobble</span><input type="range" data-key="cut_wobble" min="0" max="1" step="0.05"><output></output></label>
+              <label class="field range"><span>Fibres</span><input type="range" data-key="fibers" min="0" max="1" step="0.05"><output></output></label>
+            </details>
+            <label class="field switch"><span>Different flaws for every photo</span><input type="checkbox" data-key="vary_per_photo"><i></i></label>
+            <div class="row gap">
+              <label class="field inline-num"><span>Seed</span><input type="number" data-key="seed" min="0" step="1"></label>
+              <button id="reseed" class="btn ghost" type="button">New variation</button>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section id="tab-library" class="tab">
+      <div class="row gap wrap lib-tools">
+        <input id="libSearch" type="search" placeholder="Filter by name…">
+        <span id="libCount" class="muted"></span>
+        <div class="spacer"></div>
+        <button id="rescan" class="btn ghost" type="button">Rescan folder</button>
+      </div>
+      <div id="libGrid" class="grid"></div>
+      <div id="libEmpty" class="empty-state" hidden></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="tab">
+      <form id="settingsForm" class="settings">
+        <fieldset class="card">
+          <legend>Television</legend>
+          <label class="field"><span>Frame TV address</span><input name="tv.host" placeholder="192.168.1.50" autocomplete="off"></label>
+          <label class="field"><span>Port</span><input name="tv.port" type="number" min="1" max="65535"></label>
+          <div class="row gap"><button id="tvTest" class="btn ghost" type="button">Test connection</button><span id="tvTestResult" class="muted"></span></div>
+          <p class="hint">The first connection on port 8002 shows an “Allow” prompt on the TV. Accept it once; the token is kept in the add-on's data.</p>
+          <label class="field"><span>Keep last N uploads on TV</span><input name="tv.keep_uploads" type="number" min="0"><small>Older images this add-on uploaded are deleted from the TV. 0 keeps everything.</small></label>
+          <label class="field"><span>Samsung matte on top</span>
+            <select name="tv.tv_matte"><option value="none">None (recommended)</option><option value="shadowbox_polar">Shadowbox – polar</option><option value="modern_warm">Modern – warm</option><option value="flexible_neutral">Flexible – neutral</option></select>
+          </label>
+          <label class="field switch"><span>Dry run (render only, don't touch the TV)</span><input name="tv.dry_run" type="checkbox"><i></i></label>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Photo folder</legend>
+          <label class="field"><span>Folder to watch</span><input name="library.folder" placeholder="/media/frame"><small>Anything under /media or /share. New files are picked up automatically.</small></label>
+          <label class="field switch"><span>Include sub-folders</span><input name="library.recursive" type="checkbox"><i></i></label>
+          <label class="field"><span>Check for new photos every (seconds)</span><input name="library.scan_seconds" type="number" min="5"></label>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend>Rotation</legend>
+          <label class="field switch"><span>Rotate automatically</span><input name="playback.enabled" type="checkbox"><i></i></label>
+          <label class="field"><span>Change every (minutes)</span><input name="playback.interval_minutes" type="number" min="1"></label>
+          <label class="field"><span>Order</span>
+            <select name="playback.order"><option value="shuffle">Shuffle (no repeats until all shown)</option><option value="newest">Newest first</option><option value="name">By file name</option></select>
+          </label>
+          <label class="field switch"><span>Show new photos as soon as they arrive</span><input name="playback.show_new_immediately" type="checkbox"><i></i></label>
+          <label class="field switch"><span>Pair portrait photos side by side</span><input name="playback.pair_portraits" type="checkbox"><i></i></label>
+          <div class="row gap">
+            <label class="field"><span>Quiet from</span><input name="playback.quiet_start" type="time"></label>
+            <label class="field"><span>until</span><input name="playback.quiet_end" type="time"></label>
+          </div>
+          <p class="hint">No automatic changes during quiet hours. Leave empty to rotate around the clock.</p>
+        </fieldset>
+
+        <div class="savebar sticky">
+          <span id="settingsNote" class="muted"></span>
+          <div class="spacer"></div>
+          <button class="btn primary" type="submit">Save settings</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="tab-history" class="tab">
+      <ol id="historyList" class="history"></ol>
+    </section>
+  </main>
+
+  <dialog id="photoDialog">
+    <form method="dialog" class="dialog-body">
+      <img id="dlgImg" alt="">
+      <div class="dlg-meta"><strong id="dlgName"></strong><span id="dlgInfo" class="muted"></span></div>
+      <div class="row gap">
+        <button class="btn ghost" value="close">Close</button>
+        <div class="spacer"></div>
+        <button id="dlgDesign" class="btn" value="design" type="button">Preview in frame</button>
+        <button id="dlgShow" class="btn primary" value="show" type="button">Show on TV</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="static/app.js"></script>
+</body>
+</html>

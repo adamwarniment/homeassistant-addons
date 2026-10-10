@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "frameart", "runtimeExecutable": "dev/run-local.sh", "runtimeArgs": [], "port": 8099 }
+  ]
+}

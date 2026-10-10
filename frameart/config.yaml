@@ -1,0 +1,36 @@
+# https://developers.home-assistant.io/docs/add-ons/configuration
+name: Frame Art
+version: "2.0.0"
+# Same slug as the 1.x add-on so this installs as an update: /data, options and
+# automations carry over.
+slug: hass-frametv-artchanger
+description: Watches a photo folder and shows it on a Samsung Frame TV, framed in a realistic paper mat.
+url: "https://github.com/adamwarniment/homeassistant-addons"
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:image-frame
+panel_title: Frame Art
+stdin: true
+homeassistant_api: true
+host_network: false
+map:
+  - type: media
+    read_only: false
+  - type: share
+    read_only: true
+options:
+  log_level: info
+schema:
+  log_level: list(debug|info|warning|error)
+  # Kept from 1.x so existing values survive the update; imported into the web UI
+  # settings on first start, ignored after that.
+  tv: str?
+  media_folder_path: str?
+# No `image:` key on purpose: Home Assistant builds the add-on locally from the
+# Dockerfile on install/update, so releasing is just "bump version + git push".

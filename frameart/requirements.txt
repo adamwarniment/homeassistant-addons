@@ -1,0 +1,4 @@
+aiohttp==3.14.4
+pillow==12.3.0
+pillow-heif==1.8.0
+samsungtvws==3.0.6

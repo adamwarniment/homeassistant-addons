@@ -1,63 +1,60 @@
-# Samsung Frame TV Art Changer add-on for Home Assistant
+# Home Assistant add-ons
 
-![TV with some art on it ](https://i.imgur.com/BunHdwb.jpeg)
+| Add-on | |
+| --- | --- |
+| [Frame Art](frameart/) | Watches a photo folder and shows it on a Samsung Frame TV in a realistic paper mat, with a web UI for the frame design. |
 
-This add-on is built on the awesome work of <https://github.com/ow/samsung-frame-art> and <https://github.com/gijsvdhoven/homeassistant-addons>. 
-It adds the ability to push images from different sources to your Samsung Frame TV, currently supported are Google Art and Culture, Bing Wallpapers and Local Media folder. 
+## Install
 
-By starting the add-on it will randomly pick an image based on your configuration and put it on your frame; after the image is placed the add-on will automatically stop again. This for instance can be triggered via an automation to run on a daily basis. Please find an example below.
+Settings → Add-ons → Add-on store → ⋮ → **Repositories** → add this repository's
+git URL. Home Assistant builds the add-on on your machine from the `Dockerfile`;
+there is no container registry involved.
 
-If multiple sources are enabled it will randomly choose a source on each run. 
+User documentation lives in [frameart/DOCS.md](frameart/DOCS.md) (also shown on the add-on's Documentation tab).
 
-# Google Art
-By default the addon configuration has "Google Art" mode enabled which instead of taking images from the "media" folder takes random images from the Google Arts and Culture site and pushes it to the Samsung Frame TV. 
+## Development
 
-# Bing Wallpaper
-The addon now also supports "Bing Wallpapers" mode, which allows you to display random high-quality wallpapers from Bing on your Samsung Frame TV.
-
-# Local Media Folder
-Looks for images in the /media/frame folder and randomly pushes an image to your Samsung Frame TV. When you start the addon for the first time it creates a specific directory in Media called "frame" where you can place your custom images.
-
-Please note you must upload pictures with a lower-case extension and only .png and .jpg are supported.
-
-
-## Installation
-
-Make sure that the directory /addons/frame exists via the terminal addon if you have your log_path as /addons/frame/uploaded_files.json for example!
-
-Install this addon by adding the repository:
-
-[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fadamwarniment%2Fhomeassistant-addons)
-
-
-## Configuration Options
-
-1. **IP Address**: Set the IP address of your Samsung The Frame TV.
-2. **Google Art**: Enable to use random images from Google Arts and Culture.
-3. **Bing Wallpapers**: Enable to use random high-quality wallpapers from Bing.
-4. **High Res**: (For Google Art only) Enable to get high-resolution images using dezoomify.
-
-
-## Example Automation
-
-Here's an example of how to set up an automation to change the image daily at 23:00:
-
-```yaml
-description: "Change Samsung Frame TV Art Daily"
-mode: single
-trigger:
-  - platform: time
-    at: "23:00:00"
-condition: []
-action:
-  - service: hassio.addon_start
-    data:
-      addon: local_hass-frametv-artchanger
+```
+frameart/                 the add-on (what Home Assistant builds)
+  config.yaml             add-on manifest – bump `version` to release
+  Dockerfile, build.yaml  build recipe (HA base-python image + pip wheels)
+  frameart/               Python package
+    renderer.py           mat/bevel/imperfection rendering (Pillow only)
+    library.py            folder polling, EXIF-aware dimensions, thumbnails
+    engine.py             selection, scheduling, upload cache, pruning
+    tv.py                 Samsung Frame art-mode client + dry-run stand-in
+    web.py                aiohttp API for the ingress UI, HA sensor
+    static/               UI – plain HTML/CSS/JS, no build step
+tests/                    pytest
+dev/                      local run, deploy-to-HA and release scripts
 ```
 
-## Development and Publish Instructions
-In order to contribute, follow these steps.
-1. git clone the entire repo
-2. Modify the code
-3. Ensure version number config.yaml in the addon root folder homeassistant-samsung-fraemtv-artchanger is iterated
-4. Go to gihub actions and run the publish option to publish new versions to dockerhub
+### Run it on your laptop
+
+```bash
+make dev
+```
+
+Opens on <http://127.0.0.1:8099> with sample photos in `dev/media` and dry-run
+mode on – "uploads" are written to `.dev/data/cache/dry-run/` so you can see the
+exact 3840×2160 JPEG the TV would get. Put real photos in `dev/media` to tune the
+frame. Point it at your actual TV by turning dry run off in Settings.
+
+### Try it on Home Assistant without releasing
+
+```bash
+HA_SSH=root@homeassistant.local make deploy
+```
+
+Copies the working tree to `/addons/frameart_dev` over SSH (needs the SSH add-on
+with your public key) and rebuilds it as a local add-on called **Frame Art (dev)**.
+Stop the released add-on while testing so they don't both drive the TV.
+
+### Release
+
+1. Add a `## x.y.z` section to `frameart/CHANGELOG.md` and commit.
+2. `make release V=x.y.z` – runs tests, bumps `config.yaml`, tags, pushes.
+3. In HA: Add-on store → ⋮ → **Check for updates** → Update. HA rebuilds locally (a minute or two on a Pi).
+
+CI (`.github/workflows/ci.yml`) runs the tests and a real Docker build on every
+push; it works unchanged on GitHub Actions and Gitea/Forgejo Actions.
